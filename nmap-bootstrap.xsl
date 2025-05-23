@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-Nmap Bootstrap XSL
-Creative Commons BY-SA
-This software must not be used by military or secret service organisations.
-Andreas Hontzia (@honze_net)
--->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html" encoding="utf-8" indent="yes" doctype-system="about:legacy-compat"/>
   <xsl:template match="/">
@@ -16,6 +10,7 @@ Andreas Hontzia (@honze_net)
         <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css" type="text/css" integrity="sha384-VEpVDzPR2x8NbTDZ8NFW4AWbtT2g/ollEzX/daZdW/YvUBlbgVtsxMftnJ84k0Cn" crossorigin="anonymous"/>
         <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha384-fJU6sGmyn07b+uD1nMk7/iSb4yvaowcueiQhfVgQuD98rfva8mcr1eSvjchfpMrH" crossorigin="anonymous"></script>
         <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js" integrity="sha384-rgWRqC0OFPisxlUvl332tiM/qmaNxnlY46eksSZD84t+s2vZlqGeHrncwIRX7CGp" crossorigin="anonymous"></script>
+      
         <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js" integrity="sha384-7PXRkl4YJnEpP8uU4ev9652TTZSxrqC8uOpcV1ftVEC7LVyLZqqDUAaq+Y+lGgr9" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <style>
@@ -28,7 +23,7 @@ Andreas Hontzia (@honze_net)
           @media only screen and (min-width:1900px) {
             .container {
               width: 1800px;
-              }
+            }
           }
           .footer {
             margin-top:60px;
@@ -40,6 +35,7 @@ Andreas Hontzia (@honze_net)
           .clickable {
             cursor: pointer;
           }
+          /* Stile per l'icona del collapse del panel heading (principale) */
           .panel-heading > h3:before {
             font-family: 'Glyphicons Halflings';
             content: "\e114"; /* glyphicon-chevron-down */
@@ -47,6 +43,30 @@ Andreas Hontzia (@honze_net)
           }
           .panel-heading.collapsed > h3:before {
             content: "\e080"; /* glyphicon-chevron-right */
+          }
+
+          /* Stile per l'icona del collapse del fingerprint (nuovo) */
+          .fingerprint-panel-heading > h5:before {
+            font-family: 'Glyphicons Halflings';
+            content: "\e080"; /* glyphicon-chevron-right */
+            padding-right: 0.5em; /* Spazio minore rispetto al principale */
+            font-size: 0.8em; /* Rendi l'icona più piccola */
+          }
+          .fingerprint-panel-heading.collapsed > h5:before {
+            content: "\e080"; /* icona predefinita, freccia a destra quando chiuso */
+          }
+          .fingerprint-panel-heading:not(.collapsed) > h5:before {
+              content: "\e114"; /* freccia in giù quando aperto */
+          }
+
+
+          /* Stili per rendere le tabelle più compatte */
+          table.table-bordered {
+              font-size: 0.9em; /* Riduci la dimensione del font */
+          }
+          table.table-bordered th,
+          table.table-bordered td {
+              padding: 5px; /* Riduci il padding delle celle */
           }
         </style>
         <title>Scan Report Nmap <xsl:value-of select="/nmaprun/@version"/></title>
@@ -75,7 +95,7 @@ Andreas Hontzia (@honze_net)
         <div class="container">
           <div class="jumbotron">
             <h1>Scan Report<br/><small>Nmap <xsl:value-of select="/nmaprun/@version"/></small></h1>
-            <pre style="white-space:pre-wrap; word-wrap:break-word;"><xsl:value-of select="/nmaprun/@args"/></pre>
+            <pre style="white-space:pre-wrap;word-wrap:break-word;"><xsl:value-of select="/nmaprun/@args"/></pre>
             <p class="lead">
               <xsl:value-of select="/nmaprun/@startstr"/> – <xsl:value-of select="/nmaprun/runstats/finished/@timestr"/><br/>
               <xsl:value-of select="/nmaprun/runstats/hosts/@total"/> hosts scanned.
@@ -135,14 +155,6 @@ Andreas Hontzia (@honze_net)
               </tbody>
             </table>
           </div>
-          <script>
-            $(document).ready(function() {
-              $('#table-overview').DataTable();
-            });
-            $('#table-overview').DataTable( {
-              "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ]
-            });
-          </script>
           <h2 id="onlinehosts" class="target">Online Hosts</h2>
           <xsl:for-each select="/nmaprun/host[status/@state='up']">
             <div class="panel panel-default">
@@ -189,11 +201,24 @@ Andreas Hontzia (@honze_net)
                               <td title="Extra Info"><xsl:value-of select="service/@extrainfo"/></td>
                             </tr>
                             <tr>
-                              <td colspan="7">
-                                <a><xsl:attribute name="href">https://nvd.nist.gov/vuln/search/results?form_type=Advanced&amp;cves=on&amp;cpe_version=<xsl:value-of select="service/cpe"/></xsl:attribute><xsl:value-of select="service/cpe"/></a>
+                              <td colspan="7"> <a><xsl:attribute name="href">https://nvd.nist.gov/vuln/search/results?form_type=Advanced&amp;cves=on&amp;cpe_version=<xsl:value-of select="service/cpe"/></xsl:attribute><xsl:value-of select="service/cpe"/></a>
+                                
+                                <xsl:if test="service/@servicefp">
+                                  <div class="panel panel-default">
+                                    <div class="panel-heading clickable fingerprint-panel-heading" data-toggle="collapse">
+                                      <xsl:attribute name="data-target">#fingerprint-<xsl:value-of select="translate(../../address/@addr, '.', '-')"/>-<xsl:value-of select="@portid"/>-<xsl:value-of select="@protocol"/></xsl:attribute>
+                                      <h5 class="panel-title">Service Fingerprint (click to expand)</h5>
+                                    </div>
+                                    <div id="fingerprint-{translate(../../address/@addr, '.', '-')}-{@portid}-{@protocol}" class="panel-collapse collapse">
+                                      <div class="panel-body">
+                                        <pre style="white-space:pre-wrap;word-wrap:break-word; font-size: 0.8em;"><xsl:value-of select="service/@servicefp"/></pre>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </xsl:if>
                                 <xsl:for-each select="script">
                                   <h5><xsl:value-of select="@id"/></h5>
-                                  <pre style="white-space:pre-wrap; word-wrap:break-word;"><xsl:value-of select="@output"/></pre>
+                                  <pre style="white-space:pre-wrap;word-wrap:break-word;"><xsl:value-of select="@output"/></pre>
                                 </xsl:for-each>
                               </td>
                             </tr>
@@ -216,7 +241,7 @@ Andreas Hontzia (@honze_net)
                               <td><xsl:value-of select="state/@state"/><br/><xsl:value-of select="state/@reason"/></td>
                               <td><xsl:value-of select="service/@name"/></td>
                               <td><xsl:value-of select="service/@product"/></td>
-                              <td><xsl:value-of select="service/@version"/></td>
+                              <td><xsl:value-of select="@version"/></td>
                               <td><xsl:value-of select="service/@extrainfo"/></td>
                             </tr>
                           </xsl:when>
@@ -227,7 +252,7 @@ Andreas Hontzia (@honze_net)
                               <td><xsl:value-of select="state/@state"/><br/><xsl:value-of select="state/@reason"/></td>
                               <td><xsl:value-of select="service/@name"/></td>
                               <td><xsl:value-of select="service/@product"/></td>
-                              <td><xsl:value-of select="service/@version"/></td>
+                              <td><xsl:value-of select="@version"/></td>
                               <td><xsl:value-of select="service/@extrainfo"/></td>
                             </tr>
                           </xsl:otherwise>
@@ -241,7 +266,7 @@ Andreas Hontzia (@honze_net)
                 </xsl:if>
                 <xsl:for-each select="hostscript/script">
                   <h5><xsl:value-of select="@id"/></h5>
-                  <pre style="white-space:pre-wrap; word-wrap:break-word;"><xsl:value-of select="@output"/></pre>
+                  <pre style="white-space:pre-wrap;word-wrap:break-word;"><xsl:value-of select="@output"/></pre>
                 </xsl:for-each>
                 <xsl:if test="count(os/osmatch) > 0">
                   <h4>OS Detection</h4>
@@ -272,7 +297,7 @@ Andreas Hontzia (@honze_net)
                   <th>Version</th>
                   <th>CPE</th>
                   <th>Extra info</th>
-                </tr>
+                  </tr>
               </thead>
               <tbody>
                 <xsl:for-each select="/nmaprun/host">
@@ -289,6 +314,23 @@ Andreas Hontzia (@honze_net)
                       <td><xsl:value-of select="service/cpe"/></td>
                       <td><xsl:value-of select="service/@extrainfo"/></td>
                     </tr>
+                    <tr>
+                      <td colspan="8">
+                        <xsl:if test="service/@servicefp">
+                          <div class="panel panel-default">
+                            <div class="panel-heading clickable fingerprint-panel-heading" data-toggle="collapse">
+                              <xsl:attribute name="data-target">#openservices-fingerprint-{translate(../../address/@addr, '.', '-')}-{@portid}-{@protocol}</xsl:attribute>
+                              <h5 class="panel-title">Service Fingerprint (click to expand)</h5>
+                            </div>
+                            <div id="openservices-fingerprint-{translate(../../address/@addr, '.', '-')}-{@portid}-{@protocol}" class="panel-collapse collapse">
+                              <div class="panel-body">
+                                <pre style="white-space:pre-wrap;word-wrap:break-word; font-size: 0.8em;"><xsl:value-of select="service/@servicefp"/></pre>
+                              </div>
+                            </div>
+                          </div>
+                        </xsl:if>
+                        </td>
+                    </tr>
                   </xsl:for-each>
                 </xsl:for-each>
               </tbody>
@@ -296,16 +338,57 @@ Andreas Hontzia (@honze_net)
           </div>
           <script>
             $(document).ready(function() {
-              $('#table-services').DataTable();
+              var tableServices = $('#table-services').DataTable();
+              var tablePorts = $('.table.table-bordered').DataTable({ /* Inizializza DataTables per le tabelle dei porti */
+                  "paging":   false, /* Disabilita la paginazione se preferisci */
+                  "searching": false, /* Disabilita la ricerca se preferisci */
+                  "info":     false /* Disabilita le informazioni sulla tabella */
+              });
+
+              // Funzione per reinizializzare i collapse dopo che DataTables ha disegnato la tabella
+              function initializeCollapses() {
+                  // Per i collapse dei fingerprint nei singoli host
+                  $('.table.table-bordered .fingerprint-panel-heading').off('click').on('click', function() {
+                      var targetId = $(this).data('target');
+                      $(targetId).collapse('toggle');
+                      $(this).toggleClass('collapsed'); // Toggle la classe per l'icona
+                  });
+
+                  // Per i collapse dei fingerprint nella tabella riassuntiva "Open Services"
+                  $('#table-services .fingerprint-panel-heading').off('click').on('click', function() {
+                      var targetId = $(this).data('target');
+                      $(targetId).collapse('toggle');
+                      $(this).toggleClass('collapsed'); // Toggle la classe per l'icona
+                  });
+              }
+
+              // Chiamare initializeCollapses all'inizio e dopo ogni evento di disegno di DataTables
+              initializeCollapses(); // Per il caricamento iniziale
+
+              tableServices.on('draw.dt', function() {
+                  initializeCollapses();
+              });
+
+              // Anche per le tabelle dei singoli host, se sono inizializzate come DataTables
+              // Dato che sono inizializzate dinamicamente, il click listener va aggiunto
+              // dopo che la tabella è stata creata (o usare delegazione).
+              // Per semplicità, inizializziamo le tabelle interne come DataTables
+              // e poi gestiamo i collapse.
+              // Le tabelle all'interno dei pannelli di host sono già create, quindi possiamo attaccare gli eventi subito.
+              // Aggiungiamo un listener generico per i panel-heading clickable
+              $('.panel-heading.clickable').on('click', function() {
+                  $(this).toggleClass('collapsed');
+              });
+
+
               $("a[href^='#onlinehosts-']").click(function(event){     
                   event.preventDefault();
                   $('html,body').animate({scrollTop:($(this.hash).offset().top-60)}, 500);
               });
             });
-            $('#table-services').DataTable( {
+            $('#table-overview').DataTable( {
               "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ]
             });
-            
           </script>
         </div>
         <footer class="footer">
